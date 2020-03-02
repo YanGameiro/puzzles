@@ -1,90 +1,96 @@
 # www.hackerrank.com/challenges/matrix-rotation-algo/problem
 # You are given a 2D matrix of dimension 'm x n' and a positive integer 'r' . You have to rotate the matrix r times and print the resultant matrix. Rotation should be in anti-clockwise direction. 
 
-def resolve_1_ring(mtx,number_of_rotations):
+import math
+
+def resolve_1_ring(mtx,number_of_rotations, wanted_ring):
     
     final_mtx = mtx
     for i in range(number_of_rotations):
-        rotate_1_ring(final_mtx)
+        rotate_1_ring(final_mtx, wanted_ring)
 
     return final_mtx
 
-def unmount_ring(mtx):
-    # instantiate
+def unmount_ring(mtx,wanted_ring):
     ring1 = []
     height = len(mtx)
     width = len(mtx[0])
-    ammount_of_middle_lines = height-2
+    ammount_of_middle_columns = width-2 - (wanted_ring * 2)
+    ammount_of_middle_lines = height-2 - (wanted_ring * 2)
 
     # first line (top)
-    for j in range(height):
-        ring1 += [mtx[0][j]]
+    for j in range(ammount_of_middle_columns + 2):
+        ring1 += [mtx[wanted_ring][j + wanted_ring]]
 
     # rigth column
-    if(ammount_of_middle_lines > 0):
+    if ammount_of_middle_lines > 0:
         for i in range(ammount_of_middle_lines):
-            ring1 += [mtx[i+1][width-1]]
+            ring1 += [mtx[i+wanted_ring+1][width -1 -wanted_ring]]
 
     # last line (bottom)
-    for j in reversed(range(height)):
-        ring1 += [mtx[height-1][j]]
-    
-    # left column    
-    if(ammount_of_middle_lines > 0):
-        for i in range(ammount_of_middle_lines):
-            ring1 += [mtx[i+1][0]]
+    for j in reversed(range(ammount_of_middle_columns + 2)):
+        ring1 += [mtx[height - wanted_ring -1][j + wanted_ring]]
 
+    # left column    
+    if ammount_of_middle_lines > 0:
+        for i in reversed(range(ammount_of_middle_lines)):
+            ring1 += [mtx[i+1+ wanted_ring][wanted_ring]]
     return ring1
 
-def mount_ring(mtx, ring):
+def mount_ring(mtx, ring, wanted_ring):
     height = len(mtx)
     width = len(mtx[0])
-    ammount_of_middle_lines = height-2
+    ammount_of_middle_columns = width-2 - (wanted_ring * 2)
+    ammount_of_middle_lines = height-2 - (wanted_ring * 2)
 
     # first line (top)
-    for j in range(width):
-        mtx[0][j] = ring[0]
+    for j in range(ammount_of_middle_columns + 2):
+        mtx[wanted_ring][j + wanted_ring] = ring[0]
         del(ring[0])
 
     # rigth column
-    if(ammount_of_middle_lines > 0):
+    if ammount_of_middle_lines > 0:
         for i in range(ammount_of_middle_lines):
-            mtx[i+1][width-1] = ring[0]
+            mtx[i+wanted_ring+1][width -1 -wanted_ring] = ring[0]
             del(ring[0])
 
     # last line (bottom)
-    for j in reversed(range(width)):
-        mtx[height-1][j] = ring[0]
+    for j in reversed(range(ammount_of_middle_columns + 2)):
+        mtx[height - wanted_ring -1][j + wanted_ring] = ring[0]
         del(ring[0])
     
     # left column    
-    if(ammount_of_middle_lines > 0):
-        for i in range(ammount_of_middle_lines):
-            mtx[i+1][0] = ring[0]
+    if ammount_of_middle_lines > 0:
+        for i in reversed(range(ammount_of_middle_lines)):
+            mtx[i+1+ wanted_ring][wanted_ring] = ring[0]
+            del(ring[0])
+
 
     return mtx
 
-def rotate_1_ring(mtx):
+def rotate_1_ring(mtx, wanted_ring):
 
-    ring1 = unmount_ring(mtx)
+    ring1 = unmount_ring(mtx, wanted_ring)
 
     # walk ring1
     ring1 += [ring1[0]]
     del(ring1[0])
 
-    return mount_ring(mtx, ring1)
+    return mount_ring(mtx, ring1, wanted_ring)
     
 
 
 def rotate(mtx,number_of_rotations):
-    if len(mtx) == 2 and len(mtx[0]) == 2:
-        return resolve_1_ring(mtx,number_of_rotations)
-    if len(mtx) == 3 and len(mtx[0]) == 3:
-        return resolve_1_ring(mtx,number_of_rotations)
-    if (mtx == [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]):
-        return [[2,3,4,8], [1,7,11,12],[5,6,10,16], [9,13,14,15]]
+    if not isinstance(mtx[0], list):
+        return mtx
+    smallest_measure = len(mtx) if len(mtx[0]) > len(mtx) else len(mtx[0])
+    ammount_of_rings = math.floor(smallest_measure/2)
+    for wanted_ring in range(ammount_of_rings):
+        resolve_1_ring(mtx, number_of_rotations, wanted_ring)
+    
+    return mtx
 
-def test_rotate_4x4_2_times():
+def test_rotate_4x4_1_time():
     mtx = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]
     number_of_rotations = 1
     expected = [[2,3,4,8], [1,7,11,12],[5,6,10,16], [9,13,14,15]]
@@ -119,8 +125,35 @@ def test_rotate_3x3_2_times():
     result = rotate(mtx,number_of_rotations)
     assert result == expected
 
-test_rotate_4x4_2_times()
+
+def test_rotate_3x4_1_time():
+    mtx = [[10,11,12,13],[21,22,23,24],[31,32,33,34]]
+    number_of_rotations = 1
+    expected = [[11,12,13,24],[10,22,23,34],[21,31,32,33]]
+    result = rotate(mtx,number_of_rotations)
+    assert result == expected
+
+
+def test_rotate_4x2_2_times():
+    mtx = [[10,11],[21,22],[31,32],[41,42]]
+    number_of_rotations = 2
+    expected = [[22,32],[11,42],[10,41],[21,31]]
+    result = rotate(mtx,number_of_rotations)
+    assert result == expected
+
+
+def test_rotate_1x1_1_time1():
+    mtx = [10]
+    number_of_rotations = 1
+    expected = [10]
+    result = rotate(mtx,number_of_rotations)
+    assert result == expected
+
+test_rotate_4x4_1_time()
 test_rotate_2x2_1_time()
 test_rotate_2x2_3_times()
 test_rotate_3x3_1_time()
 test_rotate_3x3_2_times()
+test_rotate_3x4_1_time()
+test_rotate_4x2_2_times()
+test_rotate_1x1_1_time1()
